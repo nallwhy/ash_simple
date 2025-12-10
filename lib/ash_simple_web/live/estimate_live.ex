@@ -39,7 +39,13 @@ defmodule AshSimpleWeb.EstimateLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_event("validate", %{"form" => form_params}, socket) do
+  def handle_event("validate", %{"_target" => _target, "form" => form_params}, socket) do
+    # form_params =
+    #   case target do
+    #     ["form", "final_price"] -> form_params
+    #     _ -> form_params |> Map.delete("final_price")
+    #   end
+
     form =
       socket.assigns.form
       |> AshPhoenix.Form.validate(form_params)
