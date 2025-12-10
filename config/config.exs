@@ -44,6 +44,7 @@ config :spark,
   ]
 
 config :ash_simple,
+  ash_domains: [AshSimple.Billing],
   generators: [timestamp_type: :utc_datetime]
 
 # Configure the endpoint
