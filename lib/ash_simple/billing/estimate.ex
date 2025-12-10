@@ -19,23 +19,43 @@ defmodule AshSimple.Billing.Estimate do
 
     update :update do
       accept [:original_price, :discount_price, :final_price]
+
+      argument :target, :atom,
+        constraints: [one_of: [:original_price, :discount_price, :final_price]]
+
       require_atomic? false
     end
   end
 
   changes do
     change fn changeset, _context ->
+      target = changeset |> Ash.Changeset.get_argument(:target)
+
       orig_price = changeset |> Ash.Changeset.get_attribute(:original_price)
       discount_price = changeset |> Ash.Changeset.get_attribute(:discount_price)
+      final_price = changeset |> Ash.Changeset.get_attribute(:final_price)
 
-      final_price =
-        case [orig_price, discount_price] |> Enum.any?(&is_nil(&1)) do
-          true -> nil
-          false -> orig_price - discount_price
-        end
+      case target do
+        :final_price ->
+          new_orig_price =
+            case [final_price, discount_price] |> Enum.any?(&is_nil(&1)) do
+              true -> nil
+              false -> final_price + discount_price
+            end
 
-      changeset
-      |> Ash.Changeset.change_attribute(:final_price, final_price)
+          changeset
+          |> Ash.Changeset.change_attribute(:original_price, new_orig_price)
+
+        _ ->
+          new_final_price =
+            case [orig_price, discount_price] |> Enum.any?(&is_nil(&1)) do
+              true -> nil
+              false -> orig_price - discount_price
+            end
+
+          changeset
+          |> Ash.Changeset.change_attribute(:final_price, new_final_price)
+      end
     end
   end
 

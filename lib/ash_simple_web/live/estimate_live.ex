@@ -28,7 +28,7 @@ defmodule AshSimpleWeb.EstimateLive do
       <.form for={@form} phx-change="validate" phx-submit="save">
         <.input field={@form[:original_price]} label="Original Price" />
         <.input field={@form[:discount_price]} label="Discount Price" />
-        <.input field={@form[:final_price]} label="Final Price" readonly />
+        <.input field={@form[:final_price]} label="Final Price" />
 
         <div>
           <.button type="submit">Save Estimate</.button>
@@ -39,17 +39,26 @@ defmodule AshSimpleWeb.EstimateLive do
   end
 
   @impl Phoenix.LiveView
-  def handle_event("validate", %{"_target" => _target, "form" => form_params}, socket) do
+  def handle_event("validate", %{"_target" => ["form", target], "form" => form_params}, socket) do
     # form_params =
     #   case target do
     #     ["form", "final_price"] -> form_params
     #     _ -> form_params |> Map.delete("final_price")
     #   end
+    #   |> IO.inspect()
+
+    drop_fields =
+      ["original_price", "discount_price", "final_price"]
+      |> List.delete(target)
+
+    form_params =
+      form_params
+      |> Map.drop(drop_fields)
+      |> Map.put("target", target)
 
     form =
       socket.assigns.form
       |> AshPhoenix.Form.validate(form_params)
-      |> to_form()
 
     socket =
       socket
